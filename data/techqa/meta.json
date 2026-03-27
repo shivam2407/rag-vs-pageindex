@@ -1,0 +1,10 @@
+{
+  "domain": "techqa",
+  "n": 150,
+  "seed": 42,
+  "downloaded": "2026-03-25T05:17:16.925809Z",
+  "source": {
+    "source": "rajpurkar/squad_v2",
+    "note": "tech-keyword filtered"
+  }
+}

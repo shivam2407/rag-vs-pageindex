@@ -1,0 +1,38 @@
+[
+  {
+    "domain": "financebench",
+    "method": "rag",
+    "n_holdout": 15,
+    "spearman_r": 1.0,
+    "spearman_p": 0.0,
+    "cohen_kappa_weighted": 0.984,
+    "interpretation": "excellent"
+  },
+  {
+    "domain": "cuad",
+    "method": "rag",
+    "n_holdout": 15,
+    "spearman_r": 1.0,
+    "spearman_p": 0.0,
+    "cohen_kappa_weighted": 1.0,
+    "interpretation": "excellent (constant scores)"
+  },
+  {
+    "domain": "qasper",
+    "method": "rag",
+    "n_holdout": 15,
+    "spearman_r": 0.9982,
+    "spearman_p": 0.0,
+    "cohen_kappa_weighted": 0.9524,
+    "interpretation": "excellent"
+  },
+  {
+    "domain": "techqa",
+    "method": "rag",
+    "n_holdout": 15,
+    "spearman_r": 1.0,
+    "spearman_p": 0.0,
+    "cohen_kappa_weighted": 1.0,
+    "interpretation": "excellent (constant scores)"
+  }
+]

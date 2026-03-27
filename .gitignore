@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.egg-info/
+dist/
+build/
+
+# Data artifacts (large files)
+results/rag_index/
+results/bm25_index/
+results/pageindex_trees/
+results/rag_answers/
+results/bm25_answers/
+results/pageindex_answers/
+results/scores/
+results/prompts/
+results/responses/
+results/batches/
+vendor/
+
+# LaTeX build files
+paper/latex/*.aux
+paper/latex/*.log
+paper/latex/*.out
+paper/latex/*.bbl
+paper/latex/*.blg
+paper/latex/*.fls
+paper/latex/*.fdb_latexmk
+paper/latex/*.synctex.gz
+
+# OS
+.DS_Store
+Thumbs.db

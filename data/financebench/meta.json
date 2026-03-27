@@ -1,0 +1,10 @@
+{
+  "domain": "financebench",
+  "n": 150,
+  "seed": 42,
+  "downloaded": "2026-03-25T05:10:55.271431Z",
+  "source": {
+    "hf_id": "PatronusAI/financebench",
+    "split": "train"
+  }
+}
