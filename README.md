@@ -2,9 +2,7 @@
 
 A cross-domain empirical study comparing BM25, dense RAG, and hierarchical tree retrieval for document question answering.
 
-**Paper**: [SSRN Preprint](https://ssrn.com/abstract=XXXXXXX) | [PDF](paper/latex/paper.pdf)
-
-**Medium Article**: [Read on Medium](https://medium.com/@shivarawat24/XXXXXXX)
+**Paper**: [PDF](paper/latex/paper.pdf) | [Google Drive](https://drive.google.com/file/d/16yDXBJiq6jFQszVTToa46B2yDU_KT3iu/view?usp=sharing)
 
 ## Key Finding
 
