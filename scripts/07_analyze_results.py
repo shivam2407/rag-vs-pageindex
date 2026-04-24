@@ -24,7 +24,7 @@ PAPER  = ROOT / "paper"
 PAPER.mkdir(exist_ok=True)
 
 DOMAINS  = ["financebench", "cuad", "qasper", "techqa"]
-METHODS  = ["bm25", "rag", "pageindex"]
+METHODS  = ["rag", "pageindex"]
 DOMAIN_LABEL = {
     "financebench": "Finance (FinanceBench)",
     "cuad":         "Legal (CUAD)",
@@ -33,7 +33,7 @@ DOMAIN_LABEL = {
 }
 SEED     = 42
 N_BOOT   = 10000
-METHOD_DIRS = {"rag": "rag_answers", "bm25": "bm25_answers", "pageindex": "pageindex_answers"}
+METHOD_DIRS = {"rag": "rag_answers", "pageindex": "pageindex_answers"}
 random.seed(SEED)
 
 
@@ -203,13 +203,6 @@ def run_analysis():
             row["pi_vs_rag_d_size"]  = d_vs_rag[1] if d_vs_rag else None
             row["pi_vs_rag_sig"]     = "Yes" if p_vs_rag is not None and p_vs_rag < 0.0125 else "No"
 
-        if "bm25" in paired and "pageindex" in paired:
-            p_vs_bm25 = wilcoxon_p(paired["pageindex"], paired["bm25"])
-            d_vs_bm25 = cohens_d(paired["pageindex"], paired["bm25"])
-            row["pi_vs_bm25_p"]      = p_vs_bm25
-            row["pi_vs_bm25_d"]      = d_vs_bm25[0] if d_vs_bm25 else None
-            row["pi_vs_bm25_sig"]    = "Yes" if p_vs_bm25 is not None and p_vs_bm25 < 0.0125 else "No"
-
         acc_table.append(row)
 
         # ── RQ2: Document Characteristics ──────────────────────────────────
@@ -285,158 +278,102 @@ def save_csv(rows, path, fields):
 
 
 def write_paper_tables(acc_table, rq2_table):
+    method_labels = {"rag": "Dense RAG", "pageindex": "PageIndex"}
     lines = [
-        "# Experiment Results — RAG vs BM25 vs PageIndex",
+        "# Experiment Results — RAG vs PageIndex",
         "",
         "> Generated automatically from experimental data.",
-        "> Copy these tables directly into the paper.",
         "",
         "---",
         "",
-        "## Table 1: RQ1 — Accuracy Comparison (LLM-as-Judge, 0–4 scale)",
+        "## Table 1: RQ1 — Accuracy Comparison (LLM-as-Judge, 0-4 scale)",
         "",
-        "Format: mean [95% CI lower, upper]",
-        "Significance: Bonferroni-corrected α = 0.0125 per domain (4 tests); α = 0.05 overall",
-        "",
-        "| Domain | n | BM25 | Dense RAG | PageIndex | PI vs RAG p | d | Sig? |",
-        "|---|---|---|---|---|---|---|---|",
+        "| Domain | n | " + " | ".join(method_labels.get(m, m) for m in METHODS) + " | PI vs RAG p | d | Sig? |",
+        "|" + "---|" * (len(METHODS) + 4),
     ]
     for r in acc_table:
-        bm25_ci = f"{r.get('bm25_judge','—')} [{r.get('bm25_judge_lo','?')}, {r.get('bm25_judge_hi','?')}]"
-        rag_ci  = f"{r.get('rag_judge','—')} [{r.get('rag_judge_lo','?')}, {r.get('rag_judge_hi','?')}]"
-        pi_ci   = f"{r.get('pageindex_judge','—')} [{r.get('pageindex_judge_lo','?')}, {r.get('pageindex_judge_hi','?')}]"
+        cols = []
+        for m in METHODS:
+            ci = f"{r.get(f'{m}_judge','--')} [{r.get(f'{m}_judge_lo','?')}, {r.get(f'{m}_judge_hi','?')}]"
+            cols.append(ci)
         lines.append(
-            f"| {r['domain']} | {r.get('n','')} "
-            f"| {bm25_ci} | {rag_ci} | {pi_ci} "
-            f"| {r.get('pi_vs_rag_p','—')} | {r.get('pi_vs_rag_d','—')} ({r.get('pi_vs_rag_d_size','?')}) "
-            f"| {r.get('pi_vs_rag_sig','—')} |"
+            f"| {r['domain']} | {r.get('n','')} | " + " | ".join(cols) +
+            f" | {r.get('pi_vs_rag_p','--')} | {r.get('pi_vs_rag_d','--')} ({r.get('pi_vs_rag_d_size','?')}) "
+            f"| {r.get('pi_vs_rag_sig','--')} |"
         )
 
-    # Table 1b: Coverage-Adjusted Analysis
-    lines += [
-        "",
-        "## Table 1b: Coverage-Adjusted Analysis (Answered Questions Only)",
-        "",
-        "Scores computed only on questions where the system produced a substantive answer (NOT FOUND excluded).",
-        "This separates retrieval coverage from answer quality -- the key confound in Table 1.",
-        "",
-        "| Domain | BM25 (n/adj) | RAG (n/adj) | PI (n/adj) | RAG-adj vs PI-adj gap |",
-        "|---|---|---|---|---|",
-    ]
+    # Coverage-Adjusted
+    lines += ["", "## Table 1b: Coverage-Adjusted (Answered Questions Only)", "",
+              "| Domain | " + " | ".join(f"{method_labels.get(m,m)} (n/adj)" for m in METHODS) + " | Gap |",
+              "|" + "---|" * (len(METHODS) + 2)]
     for r in [x for x in acc_table if x["domain"] != "OVERALL"]:
-        for method in METHODS:
-            pass  # just need values
-        bm_n = r.get("bm25_answered_n", 0)
-        bm_adj = r.get("bm25_adj_judge", 0)
-        rg_n = r.get("rag_answered_n", 0)
+        cols = []
+        for m in METHODS:
+            n_ans = r.get(f"{m}_answered_n", 0)
+            adj = r.get(f"{m}_adj_judge", 0)
+            adj_s = f"{adj:.2f}" if isinstance(adj, (int, float)) else str(adj)
+            cols.append(f"{n_ans}/{r.get('n','?')} / {adj_s}")
         rg_adj = r.get("rag_adj_judge", 0)
-        pi_n = r.get("pageindex_answered_n", 0)
         pi_adj = r.get("pageindex_adj_judge", 0)
-        gap = round(pi_adj - rg_adj, 2) if isinstance(pi_adj, (int,float)) and isinstance(rg_adj, (int,float)) else "—"
-        lines.append(
-            f"| {r['domain']} "
-            f"| {bm_n}/{r.get('n','?')} / {bm_adj:.2f} "
-            f"| {rg_n}/{r.get('n','?')} / {rg_adj:.2f} "
-            f"| {pi_n}/{r.get('n','?')} / {pi_adj:.2f} "
-            f"| {gap:+.2f} |" if isinstance(gap, float) else
-            f"| {r['domain']} "
-            f"| {bm_n}/{r.get('n','?')} / {bm_adj} "
-            f"| {rg_n}/{r.get('n','?')} / {rg_adj} "
-            f"| {pi_n}/{r.get('n','?')} / {pi_adj} "
-            f"| {gap} |"
-        )
+        gap = round(pi_adj - rg_adj, 2) if isinstance(pi_adj, (int,float)) and isinstance(rg_adj, (int,float)) else "--"
+        gap_s = f"{gap:+.2f}" if isinstance(gap, float) else str(gap)
+        lines.append(f"| {r['domain']} | " + " | ".join(cols) + f" | {gap_s} |")
 
-    lines += [
-        "",
-        "## Table 2: Additional Accuracy Metrics",
-        "",
-        "Binary accuracy = fraction of answers scoring >= 3 (mostly/fully correct). More robust than ordinal mean given bimodal distributions.",
-        "",
-        "| Domain | BM25 F1 | RAG F1 | PI F1 | BM25 Bin% | RAG Bin% | PI Bin% | BM25 EM | RAG EM | PI EM |",
-        "|---|---|---|---|---|---|---|---|---|---|",
-    ]
+    # Additional metrics
+    lines += ["", "## Table 2: Additional Accuracy Metrics", "",
+              "| Domain | " + " | ".join(f"{method_labels.get(m,m)} F1" for m in METHODS) +
+              " | " + " | ".join(f"{method_labels.get(m,m)} EM" for m in METHODS) + " |",
+              "|" + "---|" * (len(METHODS) * 2 + 1)]
     for r in [x for x in acc_table if x["domain"] != "OVERALL"]:
-        lines.append(
-            f"| {r['domain']} "
-            f"| {r.get('bm25_f1','—')} | {r.get('rag_f1','—')} | {r.get('pageindex_f1','—')} "
-            f"| {r.get('bm25_bin_acc','—')} | {r.get('rag_bin_acc','—')} | {r.get('pageindex_bin_acc','—')} "
-            f"| {r.get('bm25_em','—')} | {r.get('rag_em','—')} | {r.get('pageindex_em','—')} |"
-        )
+        f1_cols = [str(r.get(f'{m}_f1', '--')) for m in METHODS]
+        em_cols = [str(r.get(f'{m}_em', '--')) for m in METHODS]
+        lines.append(f"| {r['domain']} | " + " | ".join(f1_cols) + " | " + " | ".join(em_cols) + " |")
 
-    lines += [
-        "",
-        "## Table 3: RQ2 — Document Characteristic Analysis",
-        "",
-        "Spearman correlation between doc characteristics and accuracy gap (PageIndex − RAG judge score)",
-        "",
-        "| Domain | r(length,gap) | p | r(struct,gap) | p | Short docs | Medium docs | Long docs | Pattern |",
-        "|---|---|---|---|---|---|---|---|---|",
-    ]
+    # RQ2
+    lines += ["", "## Table 3: RQ2 — Document Characteristics", "",
+              "| Domain | r(length,gap) | p | r(struct,gap) | p | Pattern |",
+              "|---|---|---|---|---|---|"]
     for r in rq2_table:
         lines.append(
             f"| {r['domain']} "
-            f"| {r.get('spearman_r_length','—')} | {r.get('p_length','—')} "
-            f"| {r.get('spearman_r_struct','—')} | {r.get('p_struct','—')} "
-            f"| {r.get('gap_short_docs','—'):+} "
-            f"| {r.get('gap_medium_docs','—'):+} "
-            f"| {r.get('gap_long_docs','—'):+} "
-            f"| {r.get('interpretation','—')} |"
+            f"| {r.get('spearman_r_length','--')} | {r.get('p_length','--')} "
+            f"| {r.get('spearman_r_struct','--')} | {r.get('p_struct','--')} "
+            f"| {r.get('interpretation','--')} |"
         )
 
-    # Table 4a: NOT FOUND rate (retrieval coverage)
-    lines += [
-        "",
-        "## Table 4a: Retrieval Coverage (NOT FOUND Rate)",
-        "",
-        "Percentage of questions where the system replied 'NOT FOUND'. Lower is better for coverage, but PageIndex's 0% may indicate hallucination rather than genuine retrieval success.",
-        "",
-        "| Domain | BM25 NF% | RAG NF% | PageIndex NF% |",
-        "|---|---|---|---|",
-    ]
+    # NOT FOUND rates
+    lines += ["", "## Table 4a: NOT FOUND Rates", "",
+              "| Domain | " + " | ".join(f"{method_labels.get(m,m)} NF%" for m in METHODS) + " |",
+              "|" + "---|" * (len(METHODS) + 1)]
     for domain in DOMAINS:
-        nf_rates = {}
+        cols = []
         for method in METHODS:
             src = ROOT / "results" / METHOD_DIRS[method] / f"{domain}.jsonl"
             if src.exists():
                 rows = [json.loads(l) for l in open(src, encoding="utf-8", errors="replace")]
                 nf = sum(1 for r in rows if "NOT FOUND" in r.get("pred_answer", "").upper())
-                nf_rates[method] = round(100 * nf / max(len(rows), 1), 1)
+                cols.append(f"{round(100 * nf / max(len(rows), 1), 1)}%")
             else:
-                nf_rates[method] = "—"
-        lines.append(
-            f"| {DOMAIN_LABEL.get(domain, domain)} "
-            f"| {nf_rates.get('bm25','—')}% "
-            f"| {nf_rates.get('rag','—')}% "
-            f"| {nf_rates.get('pageindex','—')}% |"
-        )
+                cols.append("--")
+        lines.append(f"| {DOMAIN_LABEL.get(domain, domain)} | " + " | ".join(cols) + " |")
 
-    lines += [
-        "",
-        "## Table 4b: RQ3 — Token Cost Comparison",
-        "",
-        "PageIndex tokens include amortized tree-building cost (370 LLM summary calls / 600 questions).",
-        "",
-        "| Domain | BM25 Tokens/Q | RAG Tokens/Q | PageIndex Tokens/Q | PI:RAG Ratio | PI:BM25 Ratio |",
-        "|---|---|---|---|---|---|",
-    ]
+    # Token cost
+    lines += ["", "## Table 4b: Token Cost", "",
+              "| Domain | " + " | ".join(f"{method_labels.get(m,m)} Tokens/Q" for m in METHODS) + " | PI:RAG Ratio |",
+              "|" + "---|" * (len(METHODS) + 2)]
     for r in [x for x in acc_table if x["domain"] != "OVERALL"]:
-        bm25_t = r.get("bm25_tokens_mean", "—")
-        rag_t  = r.get("rag_tokens_mean", "—")
-        pi_t   = r.get("pageindex_tokens_mean", "—")
-        pi_rag_ratio  = round(pi_t/rag_t, 2) if isinstance(pi_t, (int,float)) and isinstance(rag_t, (int,float)) and rag_t else "—"
-        pi_bm25_ratio = round(pi_t/bm25_t, 2) if isinstance(pi_t, (int,float)) and isinstance(bm25_t, (int,float)) and bm25_t else "—"
-        lines.append(f"| {r['domain']} | {bm25_t} | {rag_t} | {pi_t} | {pi_rag_ratio}x | {pi_bm25_ratio}x |")
+        cols = []
+        for m in METHODS:
+            cols.append(str(r.get(f"{m}_tokens_mean", "--")))
+        rag_t = r.get("rag_tokens_mean", 0)
+        pi_t = r.get("pageindex_tokens_mean", 0)
+        ratio = round(pi_t/rag_t, 2) if isinstance(pi_t, (int,float)) and isinstance(rag_t, (int,float)) and rag_t else "--"
+        lines.append(f"| {r['domain']} | " + " | ".join(cols) + f" | {ratio}x |")
 
-    # Table 4c: Cost per correct answer
-    lines += [
-        "",
-        "## Table 4c: Cost Efficiency (Tokens per Correct Answer)",
-        "",
-        "Tokens/Q divided by binary accuracy. Lower is more efficient. Inf means 0% accuracy.",
-        "",
-        "| Domain | BM25 | RAG | PageIndex | Most Efficient |",
-        "|---|---|---|---|---|",
-    ]
+    # Cost efficiency
+    lines += ["", "## Table 4c: Cost Efficiency (Tokens per Correct Answer)", "",
+              "| Domain | " + " | ".join(method_labels.get(m,m) for m in METHODS) + " | Best |",
+              "|" + "---|" * (len(METHODS) + 2)]
     for r in [x for x in acc_table if x["domain"] != "OVERALL"]:
         costs = {}
         for method in METHODS:
@@ -444,49 +381,16 @@ def write_paper_tables(acc_table, rq2_table):
             ba = r.get(f"{method}_bin_acc", 0)
             costs[method] = round(tok / ba) if ba > 0.01 else float("inf")
         best = min(costs, key=costs.get)
-        bm_s = f"{costs['bm25']}" if costs['bm25'] != float('inf') else "Inf"
-        rg_s = f"{costs['rag']}" if costs['rag'] != float('inf') else "Inf"
-        pi_s = f"{costs['pageindex']}" if costs['pageindex'] != float('inf') else "Inf"
-        lines.append(f"| {r['domain']} | {bm_s} | {rg_s} | {pi_s} | **{best.upper()}** |")
+        cells = ["Inf" if costs.get(m, float("inf")) == float("inf") else str(costs[m]) for m in METHODS]
+        lines.append(f"| {r['domain']} | " + " | ".join(cells) + f" | **{best.upper()}** |")
 
-    lines += [
-        "",
-        "---",
-        "",
-        "## Statistical Notes",
-        "",
-        f"- {power_analysis_note()}",
-        "- Paired Wilcoxon signed-rank test (non-parametric; judge scores are ordinal).",
-        "- Bonferroni correction applied for 4 simultaneous domain-level tests.",
-        "- Bootstrap 95% CIs computed with 10,000 resampling iterations (seed=42).",
-        "- Effect size d interpretation: |d|<0.2 trivial, 0.2-0.5 small, 0.5-0.8 medium, >0.8 large.",
-        "- Token counts are estimated (word count x 1.33). PageIndex tokens include amortized tree-building cost.",
-        "- Latency not reported: experiment used batch sub-agent processing, not real-time API calls.",
-        "",
-        "## Key Finding: Coverage vs Quality Decomposition",
-        "",
-        "**Table 1 vs Table 1b reveals the most important insight.** PageIndex's apparent accuracy advantage",
-        "on structured financial documents (Table 1: 3.94 vs 1.69, d=1.16) is substantially driven by",
-        "retrieval coverage differences, not answer quality. On answered-only questions (Table 1b),",
-        "the gap narrows considerably. Hierarchical tree retrieval provides higher coverage (always",
-        "selects some content) at the risk of lower precision (may select irrelevant content).",
-        "Dense RAG is more conservative: when it retrieves well, answer quality is comparable,",
-        "but it fails to retrieve 53% of the time on financial documents.",
-        "",
-        "**Practical implication:** The choice between hierarchical and vector retrieval is a",
-        "coverage-precision tradeoff. For structured, long-document domains (finance, legal),",
-        "hierarchical retrieval's coverage advantage dominates. For short, well-indexed domains",
-        "(technology), dense retrieval's precision wins.",
-        "",
-        "## Methodological Notes",
-        "",
-        "- **PageIndex implementation**: We replicate PageIndex's hierarchical tree algorithm (Section 3 of VectifyAI 2024) rather than using their official codebase. Tree built with LLM-generated summaries at each level. Results labeled 'hierarchical_replicated' for transparency. Future work should validate with the official implementation.",
-        "- **Technology domain**: Uses SQuAD v2 filtered by technology keywords (SQuAD-Tech), mean document length 812 chars. This is considerably shorter than typical technical documentation, favoring dense retrieval. Results may not generalize to longer technical documents.",
-        "- **Legal and Science domains**: All three systems score below 0.50 on CUAD and QASPER, indicating these tasks are fundamentally difficult for retrieval-augmented generation at this chunk size. These domains serve as failure-case analysis rather than meaningful system comparison.",
-        "- **Judge reliability**: Overall Kappa=0.98 (excellent) on 60 double-scored holdout answers. However, score distributions are bimodal (concentrated at 0 and 4), inflating agreement metrics. Reliability on borderline cases (scores 1-3) could not be independently validated due to insufficient borderline sample size.",
-        "- **EM caveat**: LLM-generated answers are natural-language sentences; EM is near-zero by design. F1 and judge scores are the primary metrics.",
-        "",
-    ]
+    lines += ["", "---", "",
+              "## Statistical Notes", "",
+              f"- {power_analysis_note()}",
+              "- Paired Wilcoxon signed-rank test (non-parametric; judge scores are ordinal).",
+              "- Bonferroni correction applied for 4 simultaneous domain-level tests.",
+              "- Bootstrap 95% CIs computed with 10,000 resampling iterations (seed=42).",
+              ""]
 
     out = PAPER / "EXPERIMENT_RESULTS.md"
     out.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -505,8 +409,7 @@ if __name__ == "__main__":
         ["domain", "n"] +
         [f"{m}_{s}" for m in METHODS for s in ["judge","judge_lo","judge_hi","f1","em",
                                                   "tokens_mean","latency_mean"]] +
-        ["pi_vs_rag_p","pi_vs_rag_d","pi_vs_rag_d_size","pi_vs_rag_sig",
-         "pi_vs_bm25_p","pi_vs_bm25_d","pi_vs_bm25_sig"]
+        ["pi_vs_rag_p","pi_vs_rag_d","pi_vs_rag_d_size","pi_vs_rag_sig"]
     )
     rq2_fields = ["domain","spearman_r_length","p_length","spearman_r_struct","p_struct",
                   "gap_short_docs","gap_medium_docs","gap_long_docs","interpretation"]
@@ -518,7 +421,6 @@ if __name__ == "__main__":
     print("\nKey results:")
     for r in acc_table:
         print(f"  {r['domain']:30s}  "
-              f"BM25={r.get('bm25_judge','?')}  "
               f"RAG={r.get('rag_judge','?')}  "
               f"PI={r.get('pageindex_judge','?')}  "
               f"p={r.get('pi_vs_rag_p','?')}  "

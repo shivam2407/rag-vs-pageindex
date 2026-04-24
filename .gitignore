@@ -1,35 +1,31 @@
+# Secrets
+.env
+*.key
+
 # Python
 __pycache__/
 *.pyc
 *.pyo
-.env
 *.egg-info/
 dist/
 build/
+.eggs/
 
-# Data artifacts (large files)
+# Generated artifacts (large, reproducible from scripts)
 results/rag_index/
-results/bm25_index/
 results/pageindex_trees/
-results/rag_answers/
-results/bm25_answers/
-results/pageindex_answers/
-results/scores/
-results/prompts/
-results/responses/
-results/batches/
+results/_stale/
 vendor/
 
-# LaTeX build files
-paper/latex/*.aux
-paper/latex/*.log
-paper/latex/*.out
-paper/latex/*.bbl
-paper/latex/*.blg
-paper/latex/*.fls
-paper/latex/*.fdb_latexmk
-paper/latex/*.synctex.gz
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/

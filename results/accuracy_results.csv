@@ -1,6 +1,6 @@
-domain,n,bm25_judge,bm25_judge_lo,bm25_judge_hi,bm25_f1,bm25_em,bm25_tokens_mean,bm25_latency_mean,rag_judge,rag_judge_lo,rag_judge_hi,rag_f1,rag_em,rag_tokens_mean,rag_latency_mean,pageindex_judge,pageindex_judge_lo,pageindex_judge_hi,pageindex_f1,pageindex_em,pageindex_tokens_mean,pageindex_latency_mean,pi_vs_rag_p,pi_vs_rag_d,pi_vs_rag_d_size,pi_vs_rag_sig,pi_vs_bm25_p,pi_vs_bm25_d,pi_vs_bm25_sig
-Finance (FinanceBench),150,0.9067,0.6533,1.1733,0.1,0,735,0.0,1.6933,1.3867,2.0067,0.1655,0,707,0.0,3.94,3.8933,3.98,0.6366,0.2267,503,0.0,0.0,1.1569,large,Yes,0.0,1.7797,Yes
-Legal (CUAD),150,0.2733,0.1867,0.3667,0.0971,0,879,0.0,0.1667,0.0733,0.2733,0.1426,0.0067,777,0.0,0.3067,0.2133,0.4133,0.1451,0.0067,580,0.0,0.0084,0.1629,small,Yes,0.6921,0.0447,No
-Science (QASPER),150,0.4667,0.3267,0.62,0.08,0,773,0.0,0.5,0.34,0.6733,0.0761,0,598,0.0,0.0933,0.02,0.18,0.0268,0,591,0.0,0.0,-0.3638,small,Yes,0.0,-0.3921,Yes
-Technology (SQuAD-Tech),150,3.64,3.4533,3.8067,0.3351,0,786,0.0,3.9267,3.84,3.9933,0.3817,0,750,0.0,1.7533,1.44,2.0733,0.1588,0.0067,555,0.0,0.0,-1.0926,large,Yes,0.0,-0.9039,Yes
-OVERALL,,1.3217,1.1833,1.4667,,,,,1.5717,1.42,1.7183,,,,,1.5233,1.375,1.6717,,,,,0.5774,-0.0218,small,No,,,
+domain,n,rag_judge,rag_judge_lo,rag_judge_hi,rag_f1,rag_em,rag_tokens_mean,rag_latency_mean,pageindex_judge,pageindex_judge_lo,pageindex_judge_hi,pageindex_f1,pageindex_em,pageindex_tokens_mean,pageindex_latency_mean,pi_vs_rag_p,pi_vs_rag_d,pi_vs_rag_d_size,pi_vs_rag_sig
+Finance (FinanceBench),149,1.4161,1.1342,1.7047,0.1765,0.0134,1059,5.57,0.8121,0.5839,1.0537,0.1034,0.0067,435,1.89,0.0008,-0.2852,small,Yes
+Legal (CUAD),149,0.5705,0.4228,0.7248,0.0845,0,851,1.32,0.2013,0.1074,0.302,0.0352,0,664,3.2,0.0,-0.3521,small,Yes
+Science (QASPER),150,0.3333,0.2067,0.48,0.1083,0,620,2.84,0.6733,0.48,0.8667,0.134,0,781,3.33,0.0012,0.2482,small,Yes
+Technology (SQuAD-Tech),149,3.4564,3.2617,3.6376,0.7347,0.557,737,0.62,2.698,2.4228,2.9664,0.461,0.2685,232,1.66,0.0,-0.4296,small,Yes
+OVERALL,,1.4422,1.3032,1.5829,,,,,1.0955,0.9648,1.2312,,,,,0.0,-0.2069,small,Yes
