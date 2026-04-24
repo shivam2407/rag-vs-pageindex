@@ -9,7 +9,7 @@ Microsoft Azure, Redmond, WA, USA
 
 Retrieval-Augmented Generation (RAG) pipelines typically rely on dense vector similarity to surface relevant document chunks. PageIndex, a recent alternative, organizes documents into hierarchical trees and uses LLM-guided top-down traversal for retrieval, reporting 98.7% accuracy on FinanceBench. We conduct a controlled comparison of dense RAG (FAISS with all-MiniLM-L6-v2) and PageIndex (using VectifyAI's parsing algorithm) across four document QA domains totaling 600 questions. Within each domain, both systems share the same LLM backbone, isolating retrieval as the sole variable.
 
-We find that PageIndex **underperforms** dense RAG on evidence passages: on matched question sets, PageIndex has a 73% NOT FOUND rate vs. RAG's 54% on finance (n=89), and 90.5% vs. 64.9% on legal (n=74). This is not a failure of PageIndex's algorithm but a mismatch with the evaluation data---PageIndex was designed for long, natively structured documents (e.g., 200-page 10-K filings with section headers), while our evidence passages (800--5,000 characters) lack natural hierarchy. Tree navigation selects wrong nodes because paragraph-derived section headers provide insufficient semantic signal, and PageIndex retrieves less context per query (~1,500 chars vs. RAG's ~3,500 chars). Dense RAG achieves 91% retrieval coverage on short technical passages (avg 812 chars) but only 37--51% on longer domain-specific text, revealing complementary failure modes.
+We find that PageIndex **underperforms** dense RAG on evidence passages: on matched comparisons (n=150 per domain), PageIndex has a 69.3% NOT FOUND rate vs. RAG's 51.3% on finance, and 90.7% vs. 63.3% on legal. This is not a failure of PageIndex's algorithm but a mismatch with the evaluation data---PageIndex was designed for long, natively structured documents (e.g., 200-page 10-K filings with section headers), while our evidence passages (800--5,000 characters) lack natural hierarchy. Tree navigation selects wrong nodes because paragraph-derived section headers provide insufficient semantic signal, and PageIndex retrieves less context per query (~1,500 chars vs. RAG's ~3,500 chars). Dense RAG achieves 91% retrieval coverage on short technical passages (avg 812 chars) but only 36--51% on longer domain-specific text, revealing complementary failure modes.
 
 **Keywords:** Retrieval-Augmented Generation, PageIndex, hierarchical retrieval, document QA, LLM evaluation
 
@@ -33,7 +33,7 @@ We address these through controlled experiments using a reimplementation of Vect
 
 ### Key Findings
 
-1. **PageIndex generally underperforms RAG on evidence passages.** On matched question sets, PageIndex has higher NOT FOUND rates than RAG across all four domains and lower F1 in three of four (science is a slight exception). On technology (n=104 both-found pairs), RAG achieves F1=0.779 vs. PageIndex F1=0.633.
+1. **PageIndex generally underperforms RAG on evidence passages.** On full comparisons (n=150 per domain), PageIndex has higher NOT FOUND rates than RAG across all four domains and lower F1 in three of four (science is a slight exception). On technology (n=105 both-found pairs), RAG achieves F1=0.781 vs. PageIndex F1=0.636.
 
 2. **The result is consistent with a structural mismatch hypothesis, compounded by context asymmetry.** PageIndex was designed for long, natively structured documents. On paragraph-derived sections, the LLM cannot make informed navigation decisions. However, RAG also retrieves ~2x more text per query, and we cannot separate these effects without a context-equalized experiment.
 
@@ -176,11 +176,14 @@ The FinanceBench NOT FOUND rate on clean data (51.3%, n=150) is comparable to th
 | Finance | PageIndex | 0.953 | Excellent | 0.943 | 87% |
 | Legal | RAG | 0.755 | Substantial | 0.924 | 83% |
 | Legal | PageIndex | 0.698 | Substantial | 0.997 | 90% |
+| Science | RAG | 0.000* | Degenerate | -- | 97% |
 | Science | PageIndex | 0.912 | Excellent | 0.939 | 83% |
 | Technology | RAG | 0.873 | Excellent | 0.917 | 87% |
 | Technology | PageIndex | 0.929 | Excellent | 0.956 | 86% |
 
-Inter-rater reliability between GPT-4o and GPT-4o-mini is substantial to excellent across domains (weighted kappa 0.698--0.953). This validates the judge scores as consistent, though both models are from the same vendor.
+*Science/RAG kappa is degenerate (0.000) because nearly all holdout scores were identical (97% exact agreement, near-zero variance). This is a floor effect from the high NOT FOUND rate (64%), not a reliability failure.
+
+Inter-rater reliability between GPT-4o and GPT-4o-mini is substantial to excellent across domains (weighted kappa 0.698--0.953, excluding the degenerate science/RAG case). This validates the judge scores as consistent, though both models are from the same vendor.
 
 ### 4.6 Token Cost
 
@@ -243,7 +246,7 @@ RAG achieves 91% retrieval coverage on short technical passages but only 37--51%
 
 ## 6. Conclusion
 
-We compared dense RAG and a reimplementation of PageIndex's tree-based retrieval across four document QA domains (finance, legal, science, technology). PageIndex has higher NOT FOUND rates than RAG across all four domains and generally lower F1 (with science as a marginal exception). On the technology domain (n=104 both-found pairs), RAG achieves F1=0.779 vs. PageIndex F1=0.633, the most informative comparison in this study. These results are consistent with a mismatch between PageIndex's design assumptions (long, natively structured documents) and our evaluation data (short evidence passages with paragraph-derived structure).
+We compared dense RAG and a reimplementation of PageIndex's tree-based retrieval across four document QA domains (finance, legal, science, technology). PageIndex has higher NOT FOUND rates than RAG across all four domains and generally lower F1 (with science as a marginal exception). On the technology domain (n=105 both-found pairs), RAG achieves F1=0.781 vs. PageIndex F1=0.636, the most informative comparison in this study. These results are consistent with a mismatch between PageIndex's design assumptions (long, natively structured documents) and our evaluation data (short evidence passages with paragraph-derived structure).
 
 **Important caveat.** We cannot attribute the F1 difference solely to retrieval paradigm vs. context volume. RAG retrieves ~3,500 characters per query while PageIndex retrieves ~1,500. A context-equalized experiment is required to separate these effects. Our finding is that *under typical deployment configurations*, RAG outperforms this PageIndex reimplementation on evidence passages.
 

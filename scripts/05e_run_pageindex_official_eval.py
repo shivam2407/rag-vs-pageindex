@@ -1,18 +1,18 @@
 """
-Script 05e: PageIndex evaluation using VectifyAI's OFFICIAL retrieval.
+Script 05e: PageIndex evaluation using VectifyAI's retrieval algorithm.
 
-This script implements PROPER tree-based retrieval as described in the
+This script reimplements tree-based retrieval as described in the
 PageIndex paper:
   1. Load pre-built tree (from 03b) for the question's document
-  2. Show LLM the tree structure (titles + summaries, NO text)
+  2. Show LLM the tree structure (titles + hierarchy, NO text)
   3. LLM selects which nodes to read (top-down navigation)
   4. Retrieve text content for selected nodes
   5. LLM answers from retrieved content
 
-This is the official PageIndex retrieval pattern:
+This mirrors the PageIndex retrieval pattern:
   get_document_structure() -> LLM navigates -> get_page_content()
 
-Same generation model (gpt-4o-mini) as RAG for controlled comparison.
+Same generation model per domain as RAG for controlled comparison.
 Idempotent - resumes from where it left off.
 """
 
