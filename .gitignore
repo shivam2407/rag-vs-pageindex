@@ -23,6 +23,15 @@ vendor/
 *.swp
 *.swo
 
+# LaTeX build artifacts
+paper/latex/*.aux
+paper/latex/*.log
+paper/latex/*.out
+paper/latex/*.bbl
+paper/latex/*.blg
+paper/latex/*.fls
+paper/latex/*.fdb_latexmk
+
 # OS
 .DS_Store
 Thumbs.db
