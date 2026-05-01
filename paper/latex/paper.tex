@@ -70,11 +70,11 @@ We follow the LLM-as-judge paradigm~\cite{mtbench}, implementing a two-model rel
 
 \subsection{Systems Under Comparison}
 
-\begin{table}[h]
+\begin{table}[!ht]
 \caption{System comparison. Within each domain, both systems use the same generation LLM.}
 \label{tab:systems}
 \centering
-\small
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{p{1.6cm}p{2.8cm}p{2.8cm}}
 \toprule
 Component & Dense RAG & PageIndex \\
@@ -83,12 +83,12 @@ Indexing & all-MiniLM-L6-v2 embeddings, FAISS index & Hierarchical tree (Vectify
 Retrieval & Cosine similarity, top-5 chunks & LLM navigates tree top-down \\
 Context & Concatenated chunks ($\leq$3,500 chars) & Selected node ($\sim$1,500 chars) \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
-Due to API rate limits (150 requests/day/model), each domain uses a different generation model (Table~\ref{tab:models}). Within each domain, both RAG and PageIndex use the \emph{same} model, controlling for generation quality. Cross-domain comparisons should be interpreted cautiously.
+Due to API rate limits(150 requests/day/model), each domain uses a different generation model (Table~\ref{tab:models}). Within each domain, both RAG and PageIndex use the \emph{same} model, controlling for generation quality. Cross-domain comparisons should be interpreted cautiously.
 
-\begin{table}[h]
+\begin{table}[!ht]
 \caption{Generation models per domain.}
 \label{tab:models}
 \centering
@@ -111,11 +111,11 @@ Technology & Cohere-command-r \\
 
 \subsection{Datasets}
 
-\begin{table}[h]
+\begin{table}[!ht]
 \caption{Evaluation datasets. All provide pre-extracted evidence passages, not full documents.}
 \label{tab:datasets}
 \centering
-\small
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lcccc}
 \toprule
 Domain & Source & $n$ & Avg.\ Length & Structure \\
@@ -125,7 +125,7 @@ Legal & CUAD~\cite{cuad} & 150 & 4,958 ch & Low (0.10) \\
 Science & QASPER~\cite{qasper} & 150 & 7,918 ch & High (0.98) \\
 Technology & SQuAD-Tech~\cite{squad} & 150 & 812 ch & Low (0.00) \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \textbf{Important.} These benchmarks provide pre-extracted evidence passages (800--8,000 characters), not complete documents. PageIndex was designed for long, multi-page documents with native section headers. Our results characterize performance on shorter passages and likely understate PageIndex's advantage on its intended use case.
@@ -174,14 +174,14 @@ Domain & System & NF\% & F1 & EM & Judge (0--4) & Tokens/Q \\
 
 PageIndex has a higher NOT FOUND rate than RAG on all four domains, ranging from +11 percentage points (science) to +27 points (legal). On judge scores, RAG leads on three domains; science is the sole exception where PageIndex (0.67) exceeds RAG (0.33).
 
-\begin{figure}[h]
+\begin{figure}[!ht]
 \centering
 \includegraphics[width=\columnwidth]{fig1_accuracy_by_domain.pdf}
 \caption{Judge scores (0--4) by domain. RAG leads on 3/4 domains; science is the exception.}
 \label{fig:accuracy}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[!ht]
 \centering
 \includegraphics[width=\columnwidth]{fig2_not_found_rates.pdf}
 \caption{NOT FOUND rates. PageIndex has higher retrieval failure rates across all domains.}
@@ -193,11 +193,11 @@ PageIndex has a higher NOT FOUND rate than RAG on all four domains, ranging from
 
 \subsection{Both-Found Analysis}
 
-\begin{table}[h]
+\begin{table}[!ht]
 \caption{Both-found subset: questions where neither system returned NOT FOUND. Bootstrap 95\% CIs for the F1 difference (RAG $-$ PageIndex).}
 \label{tab:bothfound}
 \centering
-\small
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lccccc}
 \toprule
 Domain & $n$ & RAG F1 & PI F1 & 95\% CI & $p$ \\
@@ -207,12 +207,12 @@ Legal & 7 & 0.174 & 0.263 & -- & 0.313 \\
 Science & 20 & 0.201 & 0.244 & -- & 0.380 \\
 Technology & 105 & 0.781 & 0.636 & $[+0.084, +0.206]$ & $<$0.001 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 Technology ($n$=105) provides the strongest comparison: RAG F1=0.781 vs.\ PageIndex F1=0.636 (95\% CI $[+0.084, +0.206]$, Wilcoxon $p$<0.001). On finance ($n$=29), RAG also leads significantly ($p$=0.023). Legal and science differences are not significant.
 
-\begin{figure}[h]
+\begin{figure}[!ht]
 \centering
 \includegraphics[width=\columnwidth]{fig3_both_found_f1.pdf}
 \caption{F1 on both-found subsets. RAG leads significantly on technology and finance.}
@@ -222,7 +222,7 @@ Technology ($n$=105) provides the strongest comparison: RAG F1=0.781 vs.\ PageIn
 
 \subsection{Token Cost}
 
-\begin{figure}[h]
+\begin{figure}[!ht]
 \centering
 \includegraphics[width=\columnwidth]{fig4_token_cost.pdf}
 \caption{Tokens per question. PageIndex uses 31--79\% of RAG's tokens (except science at 119\%).}
